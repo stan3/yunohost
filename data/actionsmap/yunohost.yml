@@ -337,7 +337,7 @@ user:
                     arguments:
                         app:
                             help: Application to manage the permission
-                            nargs: "*"
+                            nargs: "+"
                         -p:
                             full: --permission
                             help: Name of permission (main by default)
@@ -367,7 +367,7 @@ user:
                     arguments:
                         app:
                             help: Application to manage the permission
-                            nargs: "*"
+                            nargs: "+"
                         -p:
                             full: --permission
                             help: Name of permission (main by default)
@@ -397,7 +397,7 @@ user:
                     arguments:
                         app:
                             help: Application to manage the permission
-                            nargs: "*"
+                            nargs: "+"
                         -p:
                             full: --permission
                             help: Name of permission (main by default)
@@ -710,6 +710,9 @@ app:
         map:
             action_help: List apps by domain
             api: GET /appsmap
+            configuration:
+                authenticate: all
+                authenticator: ldap-anonymous
             arguments:
                 -a:
                     full: --app
@@ -730,7 +733,6 @@ app:
             api: POST /apps
             configuration:
                 authenticate: all
-                authenticator: ldap-anonymous
             arguments:
                 app:
                     help: Name, local path or git URL of the app to install
@@ -751,7 +753,6 @@ app:
             api: DELETE /apps/<app>
             configuration:
                 authenticate: all
-                authenticator: ldap-anonymous
             arguments:
                 app:
                     help: App(s) to delete
@@ -780,7 +781,6 @@ app:
             api: PUT /apps/<app>/changeurl
             configuration:
                 authenticate: all
-                authenticator: ldap-anonymous
             arguments:
                 app:
                     help: Target app instance name
@@ -926,7 +926,6 @@ app:
             api: PUT /access
             configuration:
                 authenticate: all
-                authenticator: ldap-anonymous
             arguments:
                 apps:
                     nargs: "+"
@@ -940,7 +939,6 @@ app:
             api: DELETE /access
             configuration:
                 authenticate: all
-                authenticator: ldap-anonymous
             arguments:
                 apps:
                     nargs: "+"
@@ -954,7 +952,6 @@ app:
             api: POST /access
             configuration:
                 authenticate: all
-                authenticator: ldap-anonymous
             arguments:
                 apps:
                     nargs: "+"

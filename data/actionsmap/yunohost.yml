@@ -43,12 +43,19 @@ _global:
                 parameters:
                     uri: ldap://localhost:389
                     base_dn: dc=yunohost,dc=org
-                    user_rdn: cn=admin
+                    user_rdn: cn=admin,dc=yunohost,dc=org
             ldap-anonymous:
                 vendor: ldap
                 parameters:
                     uri: ldap://localhost:389
                     base_dn: dc=yunohost,dc=org
+            as-root:
+                vendor: ldap
+                parameters:
+                    # We can get this uri by (urllib.quote_plus('/var/run/slapd/ldapi')
+                    uri: ldapi://%2Fvar%2Frun%2Fslapd%2Fldapi
+                    base_dn: dc=yunohost,dc=org
+                    user_rdn: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
         argument_auth: true
     arguments:
         -v:
@@ -84,6 +91,7 @@ user:
             api: POST /users
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 username:
                     help: The unique username to create
@@ -142,6 +150,7 @@ user:
             api: DELETE /users/<username>
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 username:
                     help: Username to delete
@@ -156,6 +165,7 @@ user:
             api: PUT /users/<username>
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 username:
                     help: Username to update
@@ -237,6 +247,7 @@ user:
                     api: POST /users/groups
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         groupname:
                             help: The unique group name to add
@@ -251,6 +262,7 @@ user:
                     api: DELETE /users/groups/<groupname>
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         groupname:
                             help: Username to delete
@@ -263,6 +275,7 @@ user:
                     api: PUT /users/groups/<groupname>
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         groupname:
                             help: Username to update
@@ -334,6 +347,7 @@ user:
                     api: POST /users/permission/<app>
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         app:
                             help: Application to manage the permission
@@ -364,6 +378,7 @@ user:
                     api: PUT /users/permission/<app>
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         app:
                             help: Application to manage the permission
@@ -394,6 +409,7 @@ user:
                     api: DELETE /users/permission/<app>
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         app:
                             help: Application to manage the permission
@@ -413,6 +429,7 @@ user:
                     api: POST /users/ssh/enable
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         username:
                             help: Username of the user
@@ -425,6 +442,7 @@ user:
                     api: POST /users/ssh/disable
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         username:
                             help: Username of the user
@@ -437,6 +455,7 @@ user:
                     api: GET /users/ssh/keys
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         username:
                             help: Username of the user
@@ -449,6 +468,7 @@ user:
                     api: POST /users/ssh/key
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         username:
                             help: Username of the user
@@ -466,6 +486,7 @@ user:
                     api: DELETE /users/ssh/key
                     configuration:
                         authenticate: all
+                        authenticator: as-root
                     arguments:
                         username:
                             help: Username of the user
@@ -496,6 +517,7 @@ domain:
             api: POST /domains
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 domain:
                     help: Domain name to add
@@ -514,6 +536,7 @@ domain:
             api: DELETE /domains/<domain>
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 domain:
                     help: Domain to delete
@@ -733,6 +756,7 @@ app:
             api: POST /apps
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 app:
                     help: Name, local path or git URL of the app to install
@@ -753,6 +777,7 @@ app:
             api: DELETE /apps/<app>
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 app:
                     help: App(s) to delete
@@ -763,7 +788,7 @@ app:
             api: PUT /upgrade/apps
             configuration:
                 authenticate: all
-                authenticator: ldap-anonymous
+                authenticator: as-root
             arguments:
                 app:
                     help: App(s) to upgrade (default all)
@@ -781,6 +806,7 @@ app:
             api: PUT /apps/<app>/changeurl
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 app:
                     help: Target app instance name
@@ -926,6 +952,7 @@ app:
             api: PUT /access
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 apps:
                     nargs: "+"
@@ -939,6 +966,7 @@ app:
             api: DELETE /access
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 apps:
                     nargs: "+"
@@ -952,6 +980,7 @@ app:
             api: POST /access
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 apps:
                     nargs: "+"
@@ -1627,6 +1656,7 @@ tools:
             api: POST /ldap
             configuration:
                 authenticate: all
+                authenticator: as-root
 
         ### tools_adminpw()
         adminpw:
@@ -1634,6 +1664,7 @@ tools:
             api: PUT /adminpw
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 -n:
                     full: --new-password
@@ -1651,6 +1682,7 @@ tools:
                 - PUT /domains/main
             configuration:
                 authenticate: all
+                authenticator: as-root
             arguments:
                 -n:
                     full: --new-domain
@@ -1741,6 +1773,7 @@ tools:
         shell:
             configuration:
                 authenticate: all
+                authenticator: as-root
             action_help: Launch a development shell
             arguments:
                 -c:

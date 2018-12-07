@@ -397,6 +397,7 @@
     "permission_not_found": "Permission '{permission:s}' not found for application {app:s}",
     "permission_name_not_valid": "Permission name '{permission:s}' not valid",
     "permission_update_failed": "Permission update failed",
+    "permission_generated": "Permission updated",
     "permission_updated": "Permission '{permission:s}' for app {app:s} updated",
     "port_already_closed": "Port {port:d} is already closed for {ip_version:s} connections",
     "port_already_opened": "Port {port:d} is already opened for {ip_version:s} connections",

@@ -797,14 +797,14 @@ class RestoreManager():
 
     Public methods:
         set_targets(self, system_parts=[], apps=[])
-        restore(self)
+        restore(self, auth)
 
     Usage:
         restore_manager = RestoreManager(name)
 
         restore_manager.set_targets(None, ['wordpress__3'])
 
-        restore_manager.restore()
+        restore_manager.restore(auth)
 
         if restore_manager.success:
             logger.success(m18n.n('restore_complete'))
@@ -890,6 +890,23 @@ class RestoreManager():
 
             logger.debug("executing the post-install...")
             tools_postinstall(domain, 'yunohost', True)
+
+    def _migrate_system_if_needed(self, auth):
+        """
+        Do some migration if needed
+        """
+
+        # Check if we need to do the migration 0009 : setup group and permission
+        result = auth.search('ou=groups,dc=yunohost,dc=org',
+                             '(&(objectclass=groupOfNamesYnh)(cn=all_users))',
+                             ['cn'])
+        if not result:
+            from importlib import import_module
+            migration_0009 = import_module('yunohost.data_migrations.0009_setup_group_permission')
+            # Update LDAP schema restart slapd
+            logger.info(m18n.n("migration_0009_update_LDAP_schema"))
+            service_regen_conf(names=['slapd'], force=True)
+            migration_0009.migrate_LDAP_db(auth)
 
     def clean(self):
         """
@@ -1108,7 +1125,7 @@ class RestoreManager():
     #   "Actual restore" (reverse step of the backup collect part)            #
     ###########################################################################
 
-    def restore(self):
+    def restore(self, auth):
         """
         Restore the archive
 
@@ -1123,8 +1140,9 @@ class RestoreManager():
             self._patch_backup_csv_file()
 
 
-            self._restore_system()
-            self._restore_apps()
+            self._restore_system(auth)
+            self._migrate_system_if_needed(auth)
+            self._restore_apps(auth)
         finally:
             self.clean()
 
@@ -1170,7 +1188,7 @@ class RestoreManager():
             logger.warning(m18n.n('backup_php5_to_php7_migration_may_fail',
                                   error=str(e)))
 
-    def _restore_system(self):
+    def _restore_system(self, auth):
         """ Restore user and system parts """
 
         system_targets = self.targets.list("system", exclude=["Skipped"])
@@ -1210,15 +1228,15 @@ class RestoreManager():
 
         service_regen_conf()
 
-    def _restore_apps(self):
+    def _restore_apps(self, auth):
         """Restore all apps targeted"""
 
         apps_targets = self.targets.list("apps", exclude=["Skipped"])
 
         for app in apps_targets:
-            self._restore_app(app)
+            self._restore_app(auth, app)
 
-    def _restore_app(self, app_instance_name):
+    def _restore_app(self, auth, app_instance_name):
         """
         Restore an app
 
@@ -1297,7 +1315,12 @@ class RestoreManager():
             filesystem.chown(app_scripts_new_path, 'admin', None, True)
 
             # Restore permissions
-            os.system("slapadd -l '%s/permission.ldif'" % app_settings_in_archive)
+            if os.path.isfile(app_restore_script_in_archive):
+                os.system("slapadd -l '%s/permission.ldif'" % app_settings_in_archive)
+            else:
+                from importlib import import_module
+                migration_0009 = import_module('yunohost.data_migrations.0009_setup_group_permission')
+                migration_0009.migrate_app_permission(auth)
 
             # Copy the app scripts to a writable temporary folder
             # FIXME : use 'install -Dm555' or something similar to what's done
@@ -2161,7 +2184,7 @@ def backup_restore(auth, name, system=[], apps=[], force=False):
     ###########################################################################
 
     restore_manager.mount()
-    restore_manager.restore()
+    restore_manager.restore(auth)
 
     # Check if something has been restored
     if restore_manager.success:
